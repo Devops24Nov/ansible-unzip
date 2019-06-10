@@ -1,0 +1,56 @@
+---
+- hosts: all
+  vars:
+    my_pattern: '^(.+html)$'
+  tasks:
+  - name: unarchive
+    unarchive:
+      src: /tmp/abc.zip
+      dest: /tmp
+      list_files: yes
+    register: archive_contents
+
+
+  - set_fact:
+      create_mgmt_root_dir_id: "junction-root"
+  - set_fact:
+      my_list: "{{ archive_contents.files | map('lower') | list }}"
+  - set_fact:
+      my_list1: "{{ archive_contents.files | map('dirname') | list }}"
+
+  - set_fact:
+      dirs: "{%- set tmp = [] -%}
+                  {%- for elem in my_list1 -%}
+                    {%- if elem -%}
+                      {{ tmp.append(my_list1[loop.index - 1]) }}
+                    {%- endif -%}
+                  {%- endfor -%}
+                  {{ tmp }}"
+  - name: create_mgmt_root_dir_filename
+    set_fact:
+      create_mgmt_root_dir_filename: "{{ dirs|unique }}"
+
+  - name: dirs
+    debug:
+      msg: "{{ create_mgmt_root_dir_filename }}"
+
+
+  - set_fact:
+      listfiles: "{%- set tmp = [] -%}
+                  {%- for elem in my_list | map('match', my_pattern) | list -%}
+                    {%- if elem -%}
+                      {{ tmp.append(my_list[loop.index - 1]) }}
+                    {%- endif -%}
+                  {%- endfor -%}
+                  {{ tmp }}"
+  - name: listfiles
+    debug:
+      msg: "{{ listfiles }}"
+
+
+  - name:  import_management_root_idandfilename
+    set_fact:
+      import_management_root_idandfilename: "{{ import_management_root_idandfilename|default([]) + [ {'id': create_mgmt_root_dir_id+'/'+item, 'filename': '/tmp/'+item} ] }}"
+    with_items: "{{ listfiles }}"
+
+  - debug: msg="{{ import_management_root_idandfilename }}"
