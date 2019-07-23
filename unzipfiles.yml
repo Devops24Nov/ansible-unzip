@@ -1,7 +1,7 @@
 ---
 - hosts: all
   vars:
-    my_pattern: '^(.+html)$'
+    my_pattern: '^(.+(html|css|sh|ini|conf|vhost|xml|php))$'
   tasks:
   - name: unarchive
     unarchive:
