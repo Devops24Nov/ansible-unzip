@@ -8,4 +8,4 @@
 
 
 # Provide a management root zip filename (optional)
-#update_management_root_zip_filename:
+#import_management_root_zip_filename:
